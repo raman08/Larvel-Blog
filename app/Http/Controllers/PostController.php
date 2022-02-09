@@ -7,11 +7,21 @@ use Illuminate\Http\Request;
 
 class PostController extends Controller
 {
+	public function __construct() {
+		$this->middleware(['auth'])->only(['store', 'destroy']);
+	}
+
 	public function index()
 	{
 		$posts = Post::orderBy('created_at', 'desc')->with(['user', 'like'])->simplepaginate(20);
 		return view('posts.index', [
 			"posts" => $posts
+		]);
+	}
+	
+	public function show(Post $post) {
+		return view('posts.show', [
+			'post' => $post
 		]);
 	}
 
@@ -28,10 +38,11 @@ class PostController extends Controller
 
 	public function destroy(Post $post)
 	{
-		if (!$post->ownedBy(auth()->user())) {
-			dd('Not ok');
-		}
+		// if (!$post->ownedBy(auth()->user())) {
+		// 	dd('Not ok');
+		// }
 
+		$this->authorize('delete', $post);
 		$post->delete();
 
 		return back();
